@@ -1,8 +1,8 @@
-# ⚡ Splunk Agentic Ops
+# ⚡ log Agentic Ops
 
 > AI-powered IT operations assistant that connects Claude to Splunk Cloud via the Model Context Protocol (MCP).
 
-Built for the **Splunk Agentic Ops Hackathon 2025**.
+
 
 ---
 
@@ -77,6 +77,4 @@ splunk-agentic-ops/
 
 ---
 
-## 📄 License
 
-MIT © 2025 [Your Name]
