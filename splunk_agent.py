@@ -13,30 +13,34 @@ from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+MCP_URL   = os.getenv("MCP_SERVER_URL", "").strip()
+MCP_TOKEN = os.getenv("SPLUNK_TOKEN", "").strip()
+
+# Build MCP auth header as module-level constant
+MCP_HEADERS = {"Authorization": f"Bearer {MCP_TOKEN}","Content-Type": "application/json"}
 
 def fetch_saved_searches():
     """
     Fetches saved searches from Splunk Cloud REST API with graceful fallback.
     Returns a list of alert entries in consistent format regardless of source.
     """
-    splunk_host = os.getenv('SPLUNK_HOST')
-    splunk_token = os.getenv('SPLUNK_TOKEN')
+    # Startup validation check
+    if len(MCP_TOKEN) < 100:
+        print(f"❌ FATAL: MCP token looks wrong. Length={len(MCP_TOKEN)}")
+        exit(1)
+    print(f"✅ MCP token valid. Length={len(MCP_TOKEN)}. Last 6: ...{MCP_TOKEN[-6:]}")
     
-    if not splunk_host or not splunk_token:
+    splunk_host = os.getenv('SPLUNK_HOST')
+    
+    if not splunk_host or not MCP_TOKEN:
         raise ValueError("Missing SPLUNK_HOST or SPLUNK_TOKEN in .env file")
     
     # Official Splunk REST API endpoint for saved searches
     api_url = f"{splunk_host}/servicesNS/nobody/search/saved/searches?output_mode=json&count=0"
     
-    # Live authentication headers
-    headers = {
-        "Authorization": f"Bearer {splunk_token}",
-        "X-Splunk-Form-Not-Form": "yes"
-    }
-    
     try:
         print("Attempting to connect to Splunk Cloud REST API...")
-        response = requests.get(api_url, headers=headers, timeout=15)
+        response = requests.get(api_url, headers=MCP_HEADERS, timeout=15)
         
         if response.status_code == 200:
             print("✓ Successfully connected to Splunk Cloud API")
