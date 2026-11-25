@@ -1,5 +1,10 @@
 # 🔍 LogOps Agentic — Splunk Alert Health Portal
 
+> **Status (Nov 2026): v2 rebuild in progress on the `v2` branch.** Parts of this README describe v1 *intentions*
+> that were never fully implemented (see `docs/ASSESSMENT.md`). The plan and progress are in `docs/ROADMAP.md`.
+> This README gets rewritten in phase 8 from tested behaviour.
+
+
 
 > An autonomous AI agent that audits your Splunk alert rules for structural rot —
 > finding the rules that are silent, blind, and broken before your next real incident does.
@@ -69,13 +74,13 @@ Every file in this pipeline produces or consumes one shared data shape — the `
 
 ```python
 AlertHealthResult = {
-    "name":           str,   # Alert rule name from Splunk
-    "query":          str,   # Raw SPL query string
-    "last_fired":     str,   # "2 days ago" | "Never" | "47 days ago"
-    "result_count":   int,   # Events returned by query right now
+    "name": str,  # Alert rule name from Splunk
+    "query": str,  # Raw SPL query string
+    "last_fired": str,  # "2 days ago" | "Never" | "47 days ago"
+    "result_count": int,  # Events returned by query right now
     "index_has_data": bool,  # Does the target index contain ANY recent data?
-    "status":         str,   # "GREEN" | "AMBER" | "RED"
-    "diagnosis":      str    # AI-generated plain-English explanation
+    "status": str,  # "GREEN" | "AMBER" | "RED"
+    "diagnosis": str,  # AI-generated plain-English explanation
 }
 ```
 

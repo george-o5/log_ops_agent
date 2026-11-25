@@ -25,3 +25,11 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# LogOps
+archive/
+*.db
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+!.env.example
