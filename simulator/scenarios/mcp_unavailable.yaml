@@ -1,0 +1,23 @@
+name: mcp_unavailable
+description: >
+  The backend behind the MCP server is down. Every op fails with a structured "unavailable" error
+  (gateway: ConnectError). The audit cannot even list rules, so the report is empty with an integration error.
+  Nothing may be RED. Any rule that is evaluated is UNKNOWN.
+seed: 606
+indexes:
+  - name: main
+    sourcetypes:
+      - {name: security_logs, generator: security, count: 96, span: 24h, lag: 1m}
+saved_searches:
+  - id: ss-failed-login
+    name: Failed Login Spike Detector
+    search: index=main sourcetype=security_logs action=failed_login | stats count by src_ip | where count > 3
+    is_scheduled: true
+    cron_schedule: "*/15 * * * *"
+    dispatch_earliest: -15m
+    dispatch_latest: now
+    actions: [email]
+faults:
+  unavailable: true
+expected:
+  Failed Login Spike Detector: UNKNOWN

@@ -1,0 +1,29 @@
+name: auth_denied
+description: >
+  Permission denied. The token's role can list saved searches but cannot search or read index metadata
+  (gateway: AuthError). Every rule is UNKNOWN, never RED.
+seed: 707
+indexes:
+  - name: main
+    sourcetypes:
+      - {name: security_logs, generator: security, count: 960, span: 7d, lag: 1m}
+saved_searches:
+  - id: ss-failed-login
+    name: Failed Login Spike Detector
+    search: index=main sourcetype=security_logs action=failed_login | stats count by src_ip | where count > 3
+    app: search
+    owner: secops
+    is_scheduled: true
+    cron_schedule: "*/15 * * * *"
+    dispatch_earliest: -15m
+    dispatch_latest: now
+    alert_type: number of events
+    alert_comparator: greater than
+    alert_threshold: "0"
+    actions: [email]
+scheduler:
+  - {rule_name: Failed Login Spike Detector, every: 15m, count: 96, status: success, result_count: 0}
+faults:
+  auth_denied: [describe_index, sourcetype_stats, field_summary, run_search, scheduler_history]
+expected:
+  Failed Login Spike Detector: UNKNOWN

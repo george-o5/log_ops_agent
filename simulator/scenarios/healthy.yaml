@@ -1,0 +1,45 @@
+name: healthy
+description: >
+  Fresh security and database feeds, all fields present, valid SPL, scheduler running cleanly.
+  Every rule should be GREEN.
+seed: 101
+indexes:
+  - name: main
+    sourcetypes:
+      - {name: security_logs, generator: security, count: 960, span: 7d, lag: 1m}
+      - {name: database_logs, generator: database, count: 960, span: 7d, lag: 2m}
+saved_searches:
+  - id: ss-failed-login
+    name: Failed Login Spike Detector
+    search: index=main sourcetype=security_logs action=failed_login | stats count by src_ip | where count > 3
+    app: search
+    owner: secops
+    description: Brute force indicator. More than 3 failed logins from one source IP.
+    is_scheduled: true
+    cron_schedule: "*/15 * * * *"
+    dispatch_earliest: -15m
+    dispatch_latest: now
+    alert_type: number of events
+    alert_comparator: greater than
+    alert_threshold: "0"
+    actions: [email]
+  - id: ss-db-slow
+    name: Database Slow Query Monitor
+    search: index=main sourcetype=database_logs duration_ms>450 | stats count by table, user
+    app: search
+    owner: dba
+    description: Statements slower than 450 ms, grouped by table and user.
+    is_scheduled: true
+    cron_schedule: "0 * * * *"
+    dispatch_earliest: -1h
+    dispatch_latest: now
+    alert_type: number of events
+    alert_comparator: greater than
+    alert_threshold: "0"
+    actions: [email]
+scheduler:
+  - {rule_name: Failed Login Spike Detector, every: 15m, count: 96, status: success, result_count: 0}
+  - {rule_name: Database Slow Query Monitor, every: 1h, count: 24, offset: 5m, status: success, result_count: 2}
+expected:
+  Failed Login Spike Detector: GREEN
+  Database Slow Query Monitor: GREEN

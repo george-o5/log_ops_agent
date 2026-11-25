@@ -1,0 +1,59 @@
+name: legacy_demo
+description: >
+  The three v1 demo rules against v1-shaped data (log_generator.py fed security_logs and database_logs into main).
+  Failed Login is healthy. The legacy DB monitor expects sourcetype db_logs and field error, which the feed does not
+  have. The phantom scan detector searches an index that does not exist.
+seed: 1
+indexes:
+  - name: main
+    sourcetypes:
+      - {name: security_logs, generator: security, count: 960, span: 7d, lag: 1m}
+      - {name: database_logs, generator: database, count: 960, span: 7d, lag: 2m}
+saved_searches:
+  - id: ss-v1-failed-login
+    name: Failed Login Spike Detector
+    search: index=main sourcetype=security_logs action=failed_login | stats count by src_ip | where count > 3
+    app: search
+    owner: admin
+    is_scheduled: true
+    cron_schedule: "*/15 * * * *"
+    dispatch_earliest: -15m
+    dispatch_latest: now
+    alert_type: number of events
+    alert_comparator: greater than
+    alert_threshold: "0"
+    actions: [email]
+  - id: ss-v1-db-timeout
+    name: Legacy Database Timeout Monitor
+    search: index=main sourcetype=db_logs error=timeout | stats count by host | where count > 0
+    app: search
+    owner: admin
+    is_scheduled: true
+    cron_schedule: "0 * * * *"
+    dispatch_earliest: -1h
+    dispatch_latest: now
+    alert_type: number of events
+    alert_comparator: greater than
+    alert_threshold: "0"
+    actions: [email]
+  - id: ss-v1-phantom-scan
+    name: Phantom Network Scan Detector
+    search: index=ghost_network_logs sourcetype=firewall_events | stats count by dest_port | where count > 10
+    app: search
+    owner: admin
+    is_scheduled: true
+    cron_schedule: "*/30 * * * *"
+    dispatch_earliest: -30m
+    dispatch_latest: now
+    alert_type: number of events
+    alert_comparator: greater than
+    alert_threshold: "0"
+    actions: [email]
+scheduler:
+  - {rule_name: Failed Login Spike Detector, every: 15m, count: 96, status: success, result_count: 0}
+  - {rule_name: Legacy Database Timeout Monitor, every: 1h, count: 24, status: success, result_count: 0}
+  - {rule_name: Phantom Network Scan Detector, every: 30m, count: 48, status: success, result_count: 0}
+expected:
+  Failed Login Spike Detector: GREEN
+  Legacy Database Timeout Monitor: RED
+  Phantom Network Scan Detector: RED

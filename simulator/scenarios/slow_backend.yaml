@@ -1,0 +1,28 @@
+name: slow_backend
+description: >
+  Searches take 3 s to answer. With a client timeout below that, run_search raises IntegrationTimeout,
+  so query_valid is ERROR and the rule UNKNOWN (never RED). Other ops answer normally.
+seed: 808
+indexes:
+  - name: main
+    sourcetypes:
+      - {name: security_logs, generator: security, count: 960, span: 7d, lag: 1m}
+saved_searches:
+  - id: ss-failed-login
+    name: Failed Login Spike Detector
+    search: index=main sourcetype=security_logs action=failed_login | stats count by src_ip | where count > 3
+    is_scheduled: true
+    cron_schedule: "*/15 * * * *"
+    dispatch_earliest: -15m
+    dispatch_latest: now
+    alert_type: number of events
+    alert_comparator: greater than
+    alert_threshold: "0"
+    actions: [email]
+scheduler:
+  - {rule_name: Failed Login Spike Detector, every: 15m, count: 96, status: success, result_count: 0}
+faults:
+  timeout_ms: 3000
+  timeout_ops: [run_search]
+expected:
+  Failed Login Spike Detector: UNKNOWN

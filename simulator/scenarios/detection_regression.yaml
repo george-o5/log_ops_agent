@@ -1,0 +1,38 @@
+name: detection_regression
+description: >
+  The admin brute-force rule was edited and now filters on action=failed_logon, a value the feed never emits.
+  Data is fresh, fields are present and the SPL is valid, so only a detection test can catch it: injecting five
+  failed logins for admin from one IP produces no alert. Expected RED (detection_test FAIL, Phase 5).
+seed: 909
+indexes:
+  - name: main
+    sourcetypes:
+      - {name: security_logs, generator: security, count: 960, span: 7d, lag: 1m}
+  - name: logops_test
+    sourcetypes: []
+saved_searches:
+  - id: ss-admin-bruteforce
+    name: Admin Brute Force
+    search: index=main sourcetype=security_logs action=failed_logon user=admin | stats count by src_ip | where count > 3
+    app: search
+    owner: secops
+    is_scheduled: true
+    cron_schedule: "*/15 * * * *"
+    dispatch_earliest: -15m
+    dispatch_latest: now
+    alert_type: number of events
+    alert_comparator: greater than
+    alert_threshold: "0"
+    actions: [email]
+scheduler:
+  - {rule_name: Admin Brute Force, every: 15m, count: 96, status: success, result_count: 0}
+detection_tests:
+  # Raw test cases. Phase 5 defines the schema (DetectionTestCase) and the injection tools.
+  - rule_id: ss-admin-bruteforce
+    events:
+      - template: {sourcetype: security_logs, action: failed_login, user: admin, src_ip: 10.0.0.5, log_type: security}
+        count: 5
+    expect: {group: {src_ip: 10.0.0.5}}
+    notes: The rule alerts above 3 failures per source IP, so 5 events are enough to cross the threshold.
+expected:
+  Admin Brute Force: RED

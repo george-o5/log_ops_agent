@@ -1,0 +1,28 @@
+name: quiet_but_healthy
+description: >
+  Data is fresh, fields are present and the SPL is valid, but nothing matches (no break-glass account activity).
+  Zero results is not broken. Expected GREEN, never RED.
+seed: 505
+indexes:
+  - name: main
+    sourcetypes:
+      - {name: security_logs, generator: security, count: 960, span: 7d, lag: 1m}
+saved_searches:
+  - id: ss-breakglass
+    name: Break-glass Account Login
+    search: index=main sourcetype=security_logs user=svc_breakglass action=success_login | stats count by src_ip, user
+    app: search
+    owner: secops
+    description: Any login by the emergency break-glass account.
+    is_scheduled: true
+    cron_schedule: "*/5 * * * *"
+    dispatch_earliest: -5m
+    dispatch_latest: now
+    alert_type: number of events
+    alert_comparator: greater than
+    alert_threshold: "0"
+    actions: [email, pagerduty]
+scheduler:
+  - {rule_name: Break-glass Account Login, every: 5m, count: 288, status: success, result_count: 0}
+expected:
+  Break-glass Account Login: GREEN

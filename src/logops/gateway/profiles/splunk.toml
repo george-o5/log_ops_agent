@@ -1,0 +1,30 @@
+# Profile for the official Splunk MCP Server: TEMPLATE ONLY.
+#
+# Fill from discovery in Phase 9 (docs/sessions/09-splunk-live.md).
+# Tool names, argument names and result shapes must come from the real server's tools/list.
+# Do not guess them. Until this file has a [profile] table, `load_profile("splunk")` raises ConfigError.
+#
+# Shape (see sim.toml for a working example):
+#
+# [profile]
+# name = "splunk"
+# source = "splunk"
+# timeout_s = 30.0
+# require_simulated_flag = false
+#
+# [errors]
+# kind_path = "..."          # where the server puts an error kind, if it does
+# message_path = "..."
+# default = "bad_response"
+# [errors.kinds]
+# # <server error kind> = "auth" | "connect" | "timeout" | "unsupported" | "bad_response" | "search"
+#
+# [ops.list_saved_searches]
+# tool = "<from discovery>"
+# args = { }
+# result_key = "<from discovery>"
+#
+# ... one [ops.<op>] table per gateway op: list_saved_searches, describe_index, sourcetype_stats,
+# field_summary, run_search, scheduler_history. Ops the server cannot serve are left out and raise
+# UnsupportedOperation (checks become UNKNOWN). Ops served through the search tool with templated SPL
+# (| tstats, | fieldsummary, index=_internal sourcetype=scheduler) need a result adapter added in Phase 9.

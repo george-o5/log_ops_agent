@@ -6,7 +6,7 @@ Update your row when you finish a phase. Status: `todo` · `in progress` · `don
 |---|---|---|---|---|---|
 | 0 | Assessment | — | — | done | `docs/ASSESSMENT.md` |
 | 1 | Foundation (package, contracts, gateway Protocol, SPL analyzer, CI) | `sessions/01-foundation.md` | — | done | `v2`: 32 tests, ruff + mypy strict clean |
-| 2 | Simulator MCP server + McpGateway | `sessions/02-simulator-mcp.md` | 1 | todo | wave A |
+| 2 | Simulator MCP server + McpGateway | `sessions/02-simulator-mcp.md` | 1 | done | `v2`: simulator (10 scenarios), McpGateway + sim profile, `logops sim`; unit, stdio integration and fixture↔MCP contract tests |
 | 3 | Audit engine + classification + CLI | `sessions/03-audit-engine.md` | 1 | todo | wave A |
 | 4 | Storage + history diff | `sessions/04-storage-history.md` | 1 | todo | wave A |
 | 6a | AI explainer | `sessions/06a-ai-explainer.md` | 1 | todo | wave A |
@@ -24,7 +24,7 @@ Update your row when you finish a phase. Status: `todo` · `in progress` · `don
 | `ingestion_stopped` | RED (`ingestion_fresh` FAIL) |
 | `invalid_spl` | RED (`query_valid` FAIL) |
 | `quiet_but_healthy` (valid, fresh, zero matches) | GREEN, never RED |
-| `mcp_unavailable` / permission denied | UNKNOWN |
+| `mcp_unavailable` / permission denied (`auth_denied`) / `slow_backend` (timeout) | UNKNOWN |
 | `detection_regression` (synthetic case missed) | RED (`detection_test` FAIL) |
 | `legacy_demo` (the 3 v1 rules) | mixed; the phantom-index rule is RED |
 

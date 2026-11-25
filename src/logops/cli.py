@@ -8,9 +8,11 @@ import typer
 
 from logops import __version__
 from logops.config import Settings
+from logops.sim_cli import sim_app
 from logops.spl import analyze
 
 app = typer.Typer(no_args_is_help=True, add_completion=False, help="LogOps: detection rule health auditing.")
+app.add_typer(sim_app, name="sim")
 
 
 @app.command()

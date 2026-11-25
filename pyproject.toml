@@ -32,10 +32,12 @@ dev = [
 logops = "logops.cli:app"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/logops"]
+# `simulator` ships alongside so `python -m simulator` and `logops sim serve` work from any directory.
+packages = ["src/logops", "simulator"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = "-ra"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
