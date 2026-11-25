@@ -1,0 +1,56 @@
+# Profile for the LogOps simulator (`python -m simulator`). The simulator is ours, so are these tool names.
+#
+# Each [ops.<op>] maps one gateway op to an MCP tool:
+#   tool       - tool name from tools/list
+#   args       - tool argument -> value. "{param}" passes the gateway parameter through with its type;
+#                any other value is sent as a literal.
+#   result_key - dotted path to the payload inside the tool's JSON result.
+
+[profile]
+name = "sim"
+source = "simulator"
+timeout_s = 30.0
+# Every successful result must carry "simulated": true, or it is rejected as BadResponse.
+require_simulated_flag = true
+
+[errors]
+# Tool errors carry {"error": {"kind": ..., "message": ...}}.
+kind_path = "error.kind"
+message_path = "error.message"
+default = "bad_response"
+
+[errors.kinds]
+search_error = "search"
+unsupported = "unsupported"
+invalid_argument = "unsupported"
+auth = "auth"
+unavailable = "connect"
+
+[ops.list_saved_searches]
+tool = "sim_list_saved_searches"
+result_key = "saved_searches"
+
+[ops.describe_index]
+tool = "sim_describe_index"
+args = { name = "{name}" }
+result_key = "index"
+
+[ops.sourcetype_stats]
+tool = "sim_sourcetype_stats"
+args = { index = "{index}", earliest = "{earliest}" }
+result_key = "sourcetypes"
+
+[ops.field_summary]
+tool = "sim_field_summary"
+args = { index = "{index}", sourcetype = "{sourcetype}", earliest = "{earliest}" }
+result_key = "field_summary"
+
+[ops.run_search]
+tool = "sim_run_search"
+args = { spl = "{spl}", earliest = "{earliest}", latest = "{latest}", max_rows = "{max_rows}" }
+result_key = "search_result"
+
+[ops.scheduler_history]
+tool = "sim_scheduler_history"
+args = { rule_name = "{rule_name}", earliest = "{earliest}" }
+result_key = "runs"

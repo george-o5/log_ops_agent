@@ -1,0 +1,48 @@
+name: invalid_spl
+description: >
+  A rule was edited and its where clause lost its right operand. The server rejects the SPL.
+  Expected RED (query_valid FAIL), with healthy data. The other rule is valid.
+seed: 404
+indexes:
+  - name: main
+    sourcetypes:
+      - {name: security_logs, generator: security, count: 960, span: 7d, lag: 1m}
+      - {name: database_logs, generator: database, count: 960, span: 7d, lag: 2m}
+saved_searches:
+  - id: ss-failed-login-broken
+    name: Failed Login Spike Detector
+    search: index=main sourcetype=security_logs action=failed_login | stats count by src_ip | where count >
+    app: search
+    owner: secops
+    is_scheduled: true
+    cron_schedule: "*/15 * * * *"
+    dispatch_earliest: -15m
+    dispatch_latest: now
+    alert_type: number of events
+    alert_comparator: greater than
+    alert_threshold: "0"
+    actions: [email]
+  - id: ss-db-slow
+    name: Database Slow Query Monitor
+    search: index=main sourcetype=database_logs duration_ms>450 | stats count by table, user
+    app: search
+    owner: dba
+    is_scheduled: true
+    cron_schedule: "0 * * * *"
+    dispatch_earliest: -1h
+    dispatch_latest: now
+    alert_type: number of events
+    alert_comparator: greater than
+    alert_threshold: "0"
+    actions: [email]
+scheduler:
+  - rule_name: Failed Login Spike Detector
+    every: 15m
+    count: 96
+    status: failed
+    result_count: null
+    message: "Error in 'where' command: The expression is malformed."
+  - {rule_name: Database Slow Query Monitor, every: 1h, count: 24, offset: 5m, status: success, result_count: 2}
+expected:
+  Failed Login Spike Detector: RED
+  Database Slow Query Monitor: GREEN
